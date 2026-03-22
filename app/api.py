@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
+
 from app.models import KVRequest
 import logging
 
@@ -23,7 +24,7 @@ async def add_key(req:KVRequest):
     value = req.value
     if key in kv_memory_store:
         logger.info("Key is already present.")
-        return {"message": f"{key} is already present."}
+        raise HTTPException(status_code=409, detail="key is already present")
     logger.info("Key has been added.")
     kv_memory_store[key] = value
 
@@ -31,7 +32,7 @@ async def add_key(req:KVRequest):
 async def get_key(key):
     if key not in kv_memory_store:
         logger.info("Key is not present.")
-        return {"message": f"{key} is not present."}
+        return HTTPException(status_code=422, detail="key is not present")
     logger.info("Returned value from store.")
     return {f"{key}": f"{kv_memory_store[key]}"}
 
@@ -39,7 +40,7 @@ async def get_key(key):
 async def remove_user(key:str):
     if key not in kv_memory_store:
         logger.info("Key is not present.")
-        return {"message": f"{key} is not present or already deleted"}
+        return HTTPException(status_code=422, detail="key has already been deleted or not found.")
     del kv_memory_store[key]
     logger.info("Key has been deleted.")
     return {"message": f"{key} has been deleted"}
