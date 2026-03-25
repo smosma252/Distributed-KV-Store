@@ -1,0 +1,1 @@
+WAL_FILEPATH = "./wal_logs/"

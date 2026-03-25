@@ -2,7 +2,12 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from threading import Lock
 from app.models import KVRequest
+from app.wal import WAL
+from app.constants import WAL_FILEPATH
+from app.recovery import Recovery
 import logging
+
+wal_filepath = WAL_FILEPATH + "_" + "wal.log"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -11,9 +16,13 @@ logging.basicConfig(
 
 logger = logging.getLogger(__name__)
 app = FastAPI()
+wal = WAL(wal_filepath)
 
 key_lock= Lock()
-kv_memory_store = {} 
+kv_memory_store = {}
+
+recovery = Recovery(wal_filepath, kv_memory_store, logger)
+recovery.recover()
 
 @app.get('/')
 def root():
@@ -28,6 +37,7 @@ async def add_key(req:KVRequest):
             logger.info("Key is already present.")
             raise HTTPException(status_code=409, detail="key is already present")
         logger.info("Key has been added.")
+    wal.append(f"PUT|{key}|{value}")
     kv_memory_store[key] = value
 
 @app.get('/kv/{key}')
@@ -44,6 +54,7 @@ async def remove_user(key:str):
         if key not in kv_memory_store:
             logger.info("Key is not present.")
             return HTTPException(status_code=422, detail="key has already been deleted or not found.")
+        wal.append(f"DELETE|{key}")
         del kv_memory_store[key]
     logger.info("Key has been deleted.")
     return {"message": f"{key} has been deleted"}
