@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi import HTTPException
-
+from threading import Lock
 from app.models import KVRequest
 import logging
 
@@ -12,7 +12,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 app = FastAPI()
 
-kv_memory_store = {}
+key_lock= Lock()
+kv_memory_store = {} 
 
 @app.get('/')
 def root():
@@ -22,10 +23,11 @@ def root():
 async def add_key(req:KVRequest):
     key = req.key
     value = req.value
-    if key in kv_memory_store:
-        logger.info("Key is already present.")
-        raise HTTPException(status_code=409, detail="key is already present")
-    logger.info("Key has been added.")
+    with key_lock:
+        if key in kv_memory_store:
+            logger.info("Key is already present.")
+            raise HTTPException(status_code=409, detail="key is already present")
+        logger.info("Key has been added.")
     kv_memory_store[key] = value
 
 @app.get('/kv/{key}')
@@ -38,9 +40,10 @@ async def get_key(key):
 
 @app.delete('/kv')
 async def remove_user(key:str):
-    if key not in kv_memory_store:
-        logger.info("Key is not present.")
-        return HTTPException(status_code=422, detail="key has already been deleted or not found.")
-    del kv_memory_store[key]
+    with key_lock:
+        if key not in kv_memory_store:
+            logger.info("Key is not present.")
+            return HTTPException(status_code=422, detail="key has already been deleted or not found.")
+        del kv_memory_store[key]
     logger.info("Key has been deleted.")
     return {"message": f"{key} has been deleted"}
