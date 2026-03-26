@@ -1,5 +1,5 @@
 import logging
-from app.wal_record import WalRecord
+from wal.wal_record import WalRecord
 
 class Recovery:
     def __init__(self, filepath:str, kv_store:dict, logger:logging):

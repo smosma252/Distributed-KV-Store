@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from threading import Lock
 from app.models import KVRequest
-from app.wal import WAL
+from wal.wal import WAL
 from app.constants import WAL_FILEPATH
 from app.recovery import Recovery
 import logging
