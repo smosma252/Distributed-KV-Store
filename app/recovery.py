@@ -1,4 +1,5 @@
 import logging
+from app.wal_record import WalRecord
 
 class Recovery:
     def __init__(self, filepath:str, kv_store:dict, logger:logging):
@@ -13,17 +14,12 @@ class Recovery:
                     line = line.strip()
                     if not line:
                         continue
-                    parts = line.split("|")
-                    if len(parts) < 2:
-                        continue
                     
-                    operation = parts[1]
-                    if operation == "PUT":
-                        key, val = parts[2:]
-                        self.kv_store[key] = val
-                    elif operation == "DELETE":
-                        key = parts[2]
-                        del self.kv_store[key]
+                    record = WalRecord.serialize(line)
+                    if record.op == "PUT":
+                        self.kv_store[record.key] = record.value
+                    elif record.op == "DELETE":
+                        del self.kv_store[record.key]
 
         except FileNotFoundError:
             self.logger.info("File Not Found")

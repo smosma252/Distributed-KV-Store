@@ -7,7 +7,7 @@ from app.constants import WAL_FILEPATH
 from app.recovery import Recovery
 import logging
 
-wal_filepath = WAL_FILEPATH + "_" + "wal.log"
+wal_filepath = WAL_FILEPATH + "wal.log"
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,7 +33,7 @@ async def add_key(req:KVRequest):
             logger.info("Key is already present.")
             raise HTTPException(status_code=409, detail="key is already present")
         logger.info("Key has been added.")
-    wal.append(f"PUT|{key}|{value}")
+    wal.append("PUT", key, value)
     kv_memory_store[key] = value
 
 @app.get('/kv/{key}')
@@ -50,7 +50,7 @@ async def remove_user(key:str):
         if key not in kv_memory_store:
             logger.info("Key is not present.")
             return HTTPException(status_code=422, detail="key has already been deleted or not found.")
-        wal.append(f"DELETE|{key}")
+        wal.append("DELETE", key)
         del kv_memory_store[key]
     logger.info("Key has been deleted.")
     return {"message": f"{key} has been deleted"}
