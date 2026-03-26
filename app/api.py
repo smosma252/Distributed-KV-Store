@@ -32,9 +32,9 @@ async def add_key(req:KVRequest):
         if key in kv_memory_store:
             logger.info("Key is already present.")
             raise HTTPException(status_code=409, detail="key is already present")
-        logger.info("Key has been added.")
-    wal.append("PUT", key, value)
-    kv_memory_store[key] = value
+        wal.append("PUT", key, value)
+        kv_memory_store[key] = value
+    logger.info("Key has been added.")    
 
 @app.get('/kv/{key}')
 async def get_key(key):
