@@ -24,10 +24,6 @@ kv_memory_store = {}
 recovery = Recovery(wal_filepath, kv_memory_store, logger)
 recovery.recover()
 
-@app.get('/')
-def root():
-    return kv_memory_store
-
 @app.post('/kv')
 async def add_key(req:KVRequest):
     key = req.key
